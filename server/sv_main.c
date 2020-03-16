@@ -34,12 +34,6 @@ cvar_t	*zombietime;			// seconds to sink messages after disconnect
 
 cvar_t	*rcon_password;			// password for remote server commands
 
-cvar_t	*allow_download;
-cvar_t *allow_download_players;
-cvar_t *allow_download_models;
-cvar_t *allow_download_sounds;
-cvar_t *allow_download_maps;
-
 cvar_t *sv_airaccelerate;
 
 cvar_t	*sv_noreload;			// don't reload level state when reentering
@@ -966,11 +960,6 @@ void SV_Init (void)
 	sv_paused = Cvar_Get ("paused", "0", 0);
 	sv_timedemo = Cvar_Get ("timedemo", "0", 0);
 	sv_enforcetime = Cvar_Get ("sv_enforcetime", "0", 0);
-	allow_download = Cvar_Get ("allow_download", "1", CVAR_ARCHIVE);
-	allow_download_players  = Cvar_Get ("allow_download_players", "0", CVAR_ARCHIVE);
-	allow_download_models = Cvar_Get ("allow_download_models", "1", CVAR_ARCHIVE);
-	allow_download_sounds = Cvar_Get ("allow_download_sounds", "1", CVAR_ARCHIVE);
-	allow_download_maps	  = Cvar_Get ("allow_download_maps", "1", CVAR_ARCHIVE);
 
 	sv_noreload = Cvar_Get ("sv_noreload", "0", 0);
 
