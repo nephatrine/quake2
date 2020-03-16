@@ -436,8 +436,10 @@ Sys_AppActivate
 */
 void Sys_AppActivate (void)
 {
+#ifndef DEDICATED_ONLY
 	ShowWindow ( cl_hwnd, SW_RESTORE);
 	SetForegroundWindow ( cl_hwnd );
+#endif
 }
 
 /*
