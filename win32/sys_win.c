@@ -475,10 +475,10 @@ void *Sys_GetGameAPI (void *parms)
 {
 	void	*(*GetGameAPI) (void *);
 	char	name[MAX_OSPATH];
-	char	*path;
+	char	*path = NULL;
 	char	cwd[MAX_OSPATH];
-#if defined _M_IX86
-	const char *gamename = "gamex86.dll";
+	const char *gamename = "game.server.dll";
+	const char *gamewrap = "game.wrapper.dll";
 
 #ifdef NDEBUG
 	const char *debugdir = "release";
@@ -486,56 +486,30 @@ void *Sys_GetGameAPI (void *parms)
 	const char *debugdir = "debug";
 #endif
 
-#elif defined _M_ALPHA
-	const char *gamename = "gameaxp.dll";
-
-#ifdef NDEBUG
-	const char *debugdir = "releaseaxp";
-#else
-	const char *debugdir = "debugaxp";
-#endif
-
-#endif
-
 	if (game_library)
 		Com_Error (ERR_FATAL, "Sys_GetGameAPI without Sys_UnloadingGame");
 
-	// check the current debug directory first for development purposes
-	_getcwd (cwd, sizeof(cwd));
-	Com_sprintf (name, sizeof(name), "%s/%s/%s", cwd, debugdir, gamename);
-	game_library = LoadLibrary ( name );
-	if (game_library)
+	// now run through the search paths
+	while (1)
 	{
-		Com_DPrintf ("LoadLibrary (%s)\n", name);
-	}
-	else
-	{
-#ifdef DEBUG
-		// check the current directory for other development purposes
-		Com_sprintf (name, sizeof(name), "%s/%s", cwd, gamename);
-		game_library = LoadLibrary ( name );
+		path = FS_NextPath (path);
+		if (!path)
+			return NULL;		// couldn't find one anywhere
+
+		Com_sprintf (name, sizeof(name), "%s/%s", path, gamewrap);
+		game_library = LoadLibrary (name);
 		if (game_library)
 		{
-			Com_DPrintf ("LoadLibrary (%s)\n", name);
+			Com_DPrintf ("LoadLibrary (%s)\n",name);
+			break;
 		}
-		else
-#endif
+
+		Com_sprintf (name, sizeof(name), "%s/%s", path, gamename);
+		game_library = LoadLibrary (name);
+		if (game_library)
 		{
-			// now run through the search paths
-			path = NULL;
-			while (1)
-			{
-				path = FS_NextPath (path);
-				if (!path)
-					return NULL;		// couldn't find one anywhere
-				Com_sprintf (name, sizeof(name), "%s/%s", path, gamename);
-				game_library = LoadLibrary (name);
-				if (game_library)
-				{
-					Com_DPrintf ("LoadLibrary (%s)\n",name);
-					break;
-				}
-			}
+			Com_DPrintf ("LoadLibrary (%s)\n",name);
+			break;
 		}
 	}
 
