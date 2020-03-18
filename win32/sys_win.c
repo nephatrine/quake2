@@ -477,14 +477,8 @@ void *Sys_GetGameAPI (void *parms)
 	char	name[MAX_OSPATH];
 	char	*path = NULL;
 	char	cwd[MAX_OSPATH];
-	const char *gamename = "game.server.dll";
-	const char *gamewrap = "game.wrapper.dll";
-
-#ifdef NDEBUG
-	const char *debugdir = "release";
-#else
-	const char *debugdir = "debug";
-#endif
+	const char *gamenames[] = {"game.wrapper.dll", "game.server.dll", "game.dll", NULL};
+	int		i;
 
 	if (game_library)
 		Com_Error (ERR_FATAL, "Sys_GetGameAPI without Sys_UnloadingGame");
@@ -496,21 +490,17 @@ void *Sys_GetGameAPI (void *parms)
 		if (!path)
 			return NULL;		// couldn't find one anywhere
 
-		Com_sprintf (name, sizeof(name), "%s/%s", path, gamewrap);
-		game_library = LoadLibrary (name);
-		if (game_library)
+		for(i = 0; gamenames[i] != NULL; ++i)
 		{
-			Com_DPrintf ("LoadLibrary (%s)\n",name);
-			break;
+			Com_sprintf (name, sizeof(name), "%s/%s", path, gamenames[i]);
+			game_library = LoadLibrary (name);
+			if (game_library)
+			{
+				Com_DPrintf ("LoadLibrary (%s)\n",name);
+				break;
+			}
 		}
-
-		Com_sprintf (name, sizeof(name), "%s/%s", path, gamename);
-		game_library = LoadLibrary (name);
-		if (game_library)
-		{
-			Com_DPrintf ("LoadLibrary (%s)\n",name);
-			break;
-		}
+		if(game_library) break;
 	}
 
 	GetGameAPI = (void *)GetProcAddress (game_library, "GetGameAPI");
