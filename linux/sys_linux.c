@@ -219,13 +219,8 @@ void *Sys_GetGameAPI (void *parms)
 	char	name[MAX_OSPATH];
 	char	curpath[MAX_OSPATH];
 	char	*path;
-#ifdef __i386__
-	const char *gamename = "gamei386.so";
-#elif defined __alpha__
-	const char *gamename = "gameaxp.so";
-#else
-#error Unknown arch
-#endif
+	const char *gamenames[] = {"game.wrapper.so", "game.server.so", "game.so", NULL};
+	int		i;
 
 	setreuid(getuid(), getuid());
 	setegid(getgid());
@@ -235,7 +230,7 @@ void *Sys_GetGameAPI (void *parms)
 
 	getcwd(curpath, sizeof(curpath));
 
-	Com_Printf("------- Loading %s -------\n", gamename);
+	Com_Printf("------- Loading %s -------\n", gamenames[1]);
 
 	// now run through the search paths
 	path = NULL;
@@ -244,13 +239,18 @@ void *Sys_GetGameAPI (void *parms)
 		path = FS_NextPath (path);
 		if (!path)
 			return NULL;		// couldn't find one anywhere
-		sprintf (name, "%s/%s/%s", curpath, path, gamename);
-		game_library = dlopen (name, RTLD_LAZY );
-		if (game_library)
+
+		for(i = 0; gamenames[i] != NULL; ++i)
 		{
-			Com_Printf ("LoadLibrary (%s)\n",name);
-			break;
+			sprintf (name, "%s/%s/%s", curpath, path, gamenames[i]);
+			game_library = dlopen (name, RTLD_LAZY );
+			if (game_library)
+			{
+				Com_Printf ("LoadLibrary (%s)\n",name);
+				break;
+			}
 		}
+		if(game_library) break;
 	}
 
 	GetGameAPI = (void *)dlsym (game_library, "GetGameAPI");

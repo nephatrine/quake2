@@ -87,7 +87,7 @@ void VID_Printf (int print_level, char *fmt, ...)
 	static qboolean	inupdate;
 	
 	va_start (argptr,fmt);
-	vsprintf (msg,fmt,argptr);
+	vsnprintf (msg, sizeof(msg), fmt, argptr);
 	va_end (argptr);
 
 	if (print_level == PRINT_ALL)
@@ -392,7 +392,10 @@ Com_Printf("Trying mode 0\n");
 					Com_Error (ERR_FATAL, "Couldn't fall back to software refresh!");
 			}
 
-			Cvar_Set( "vid_ref", "soft" );
+			if (getenv("DISPLAY"))
+				Cvar_Set( "vid_ref", "softx" );
+			else
+				Cvar_Set( "vid_ref", "soft" );
 
 			/*
 			** drop the console if we fail to load a refresh
@@ -417,9 +420,9 @@ void VID_Init (void)
 	/* Create the video variables so we know how to start the graphics drivers */
 	// if DISPLAY is defined, try X
 	if (getenv("DISPLAY"))
-		vid_ref = Cvar_Get ("vid_ref", "softx", CVAR_ARCHIVE);
+		vid_ref = Cvar_Get ("vid_ref", "glx", CVAR_ARCHIVE);
 	else
-		vid_ref = Cvar_Get ("vid_ref", "soft", CVAR_ARCHIVE);
+		vid_ref = Cvar_Get ("vid_ref", "gl", CVAR_ARCHIVE);
 	vid_xpos = Cvar_Get ("vid_xpos", "3", CVAR_ARCHIVE);
 	vid_ypos = Cvar_Get ("vid_ypos", "22", CVAR_ARCHIVE);
 	vid_fullscreen = Cvar_Get ("vid_fullscreen", "0", CVAR_ARCHIVE);
@@ -460,14 +463,6 @@ void VID_Shutdown (void)
 /* INPUT                                                                     */
 /*****************************************************************************/
 
-cvar_t	*in_joystick;
-
-// This is fake, it's acutally done by the Refresh load
-void IN_Init (void)
-{
-	in_joystick	= Cvar_Get ("in_joystick", "0", CVAR_ARCHIVE);
-}
-
 void Real_IN_Init (void)
 {
 	if (RW_IN_Init_fp)
@@ -504,10 +499,6 @@ void IN_Frame (void)
 
 	if (RW_IN_Frame_fp)
 		RW_IN_Frame_fp();
-}
-
-void IN_Activate (qboolean active)
-{
 }
 
 void Do_Key_Event(int key, qboolean down)
